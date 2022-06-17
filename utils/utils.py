@@ -6,6 +6,7 @@ import os
 import models.models as models
 import matplotlib.pyplot as plt
 from PIL import Image
+from tensorboardX import SummaryWriter
 
 
 def fix_seed(seed):
@@ -78,48 +79,19 @@ class losses_saver():
         self.path = os.path.join(self.opt.checkpoints_dir, self.opt.name, "losses")
         self.is_first = True
         os.makedirs(self.path, exist_ok=True)
-        for name in self.name_list:
-            if opt.continue_train:
-                self.losses[name] = np.load(self.path+"/losses.npy", allow_pickle = True).item()[name]
-            else:
-                self.losses[name] = list()
+        self.writer = SummaryWriter(self.path)
 
-    def __call__(self, epoch, losses):
-        for i, loss in enumerate(losses):
-            if loss is None:
-                self.cur_estimates[i] = None
-            else:
-                self.cur_estimates[i] += loss.detach().cpu().numpy()
-        if epoch % self.freq_smooth_loss == self.freq_smooth_loss-1:
+    def __call__(self, epoch, iter, losses):
+        if iter % self.freq_save_loss == self.freq_save_loss-1:
+            print_str = f'epoch: {epoch} iter: {iter} '
             for i, loss in enumerate(losses):
-                if not self.cur_estimates[i] is None:
-                    self.losses[self.name_list[i]].append(self.cur_estimates[i]/self.opt.freq_smooth_loss)
-                    self.cur_estimates[i] = 0
-        if epoch % self.freq_save_loss == self.freq_save_loss-1:
-            self.plot_losses()
-            np.save(os.path.join(self.opt.checkpoints_dir, self.opt.name, "losses", "losses"), self.losses)
-
-    def plot_losses(self):
-        for curve in self.losses:
-            fig,ax = plt.subplots(1)
-            n = np.array(range(len(self.losses[curve])))*self.opt.freq_smooth_loss
-            plt.plot(n[1:], self.losses[curve][1:])
-            plt.ylabel('loss')
-            plt.xlabel('epochs')
-
-            plt.savefig(os.path.join(self.opt.checkpoints_dir, self.opt.name, "losses", '%s.png' % (curve)),  dpi=600)
-            plt.close(fig)
-
-        fig,ax = plt.subplots(1)
-        for curve in self.losses:
-            if np.isnan(self.losses[curve][0]):
-                continue
-            plt.plot(n[1:], self.losses[curve][1:], label=curve)
-        plt.ylabel('loss')
-        plt.xlabel('epochs')
-        plt.legend(loc="upper right")
-        plt.savefig(os.path.join(self.opt.checkpoints_dir, self.opt.name, "losses", 'combined.png'), dpi=600)
-        plt.close(fig)
+                if loss is None:
+                    continue
+                item_loss = loss.detach().cpu().numpy()
+                self.writer.add_scalar(f'train/{self.name_list[i]}',
+                                       item_loss, iter)
+                print_str += f'{self.name_list[i]}: {item_loss:04} '
+            print(print_str)
 
 
 def update_EMA(model, cur_iter, dataloader, opt, force_run_stats=False):
@@ -274,8 +246,3 @@ def labelcolormap(N):
             cmap[i, 1] = g
             cmap[i, 2] = b
     return cmap
-
-
-
-
-

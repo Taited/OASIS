@@ -67,7 +67,7 @@ for epoch in range(start_epoch, opt.num_epochs):
             is_best = fid_computer.update(model, cur_iter)
             if is_best:
                 utils.save_networks(opt, cur_iter, model, best=True)
-        visualizer_losses(cur_iter, losses_G_list+losses_D_list)
+        visualizer_losses(epoch, cur_iter, losses_G_list+losses_D_list)
 
 #--- after training ---#
 utils.update_EMA(model, cur_iter, dataloader, opt, force_run_stats=True)

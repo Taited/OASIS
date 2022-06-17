@@ -11,7 +11,7 @@ class FlickrDataset(torch.utils.data.Dataset):
         opt.crop_size = 512
         opt.label_nc = 28
         opt.contain_dontcare_label = True
-        opt.semantic_nc = 28 # label_nc + unknown
+        opt.semantic_nc = 29 # label_nc + unknown
         opt.cache_filelist_read = False
         opt.cache_filelist_write = False
         opt.aspect_ratio = 2.0
