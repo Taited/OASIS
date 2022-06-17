@@ -8,6 +8,7 @@ from PIL import Image
 import models.models as models
 from utils.fid_folder.inception import InceptionV3
 import matplotlib.pyplot as plt
+import tqdm
 
 # --------------------------------------------------------------------------#
 # This code is an adapted version of https://github.com/mseitzer/pytorch-fid

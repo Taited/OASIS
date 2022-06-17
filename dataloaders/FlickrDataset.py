@@ -11,7 +11,7 @@ class FlickrDataset(torch.utils.data.Dataset):
         opt.crop_size = 512
         opt.label_nc = 28
         opt.contain_dontcare_label = True
-        opt.semantic_nc = 29 # label_nc + unknown
+        opt.semantic_nc = 28 # label_nc + unknown
         opt.cache_filelist_read = False
         opt.cache_filelist_write = False
         opt.aspect_ratio = 2.0
@@ -27,11 +27,13 @@ class FlickrDataset(torch.utils.data.Dataset):
         image = Image.open(self.images[idx]).convert('RGB')
         label = Image.open(self.labels[idx])
         image, label = self.transforms(image, label)
-        label = label * 255
+        label = label * 1.0
         return {"image": image, "label": label, "name": self.images[idx]}
 
     def list_images(self):
         mode = self.opt.phase
+        if self.for_metrics:
+            mode = 'valid'
         images = glob.glob(os.path.join(self.opt.dataroot, mode, "imgs") + "/*.jpg")
         images = list(sorted(images))
         labels = glob.glob(os.path.join(self.opt.dataroot, mode, "labels") + "/*.png")
