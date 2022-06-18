@@ -9,8 +9,8 @@ class FlickrDataset(torch.utils.data.Dataset):
     def __init__(self, opt, for_metrics):
         opt.load_size = 512
         opt.crop_size = 512
-        opt.label_nc = 28
-        opt.contain_dontcare_label = True
+        opt.label_nc = 29
+        opt.contain_dontcare_label = False
         opt.semantic_nc = 29 # label_nc + unknown
         opt.cache_filelist_read = False
         opt.cache_filelist_write = False
@@ -49,8 +49,8 @@ class FlickrDataset(torch.utils.data.Dataset):
         assert image.size == label.size
         # resize
         new_width, new_height = (int(self.opt.load_size / self.opt.aspect_ratio), self.opt.load_size)
-        image = TR.functional.resize(image, (new_width, new_height), Image.BICUBIC)
-        label = TR.functional.resize(label, (new_width, new_height), Image.NEAREST)
+        image = TR.functional.resize(image, (new_width, new_height), TR.InterpolationMode.BICUBIC)
+        label = TR.functional.resize(label, (new_width, new_height), TR.InterpolationMode.NEAREST)
         # flip
         if not (self.opt.phase == "test" or self.opt.no_flip or self.for_metrics):
             if random.random() < 0.5:
